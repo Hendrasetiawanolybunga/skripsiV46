@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Daftar Pesanan{% endblock %}
+
+{% block content %}
+<div class="container my-5 my-sm-3">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4 text-center fw-bold fs-3 fs-sm-2" style="color: #059212;">Daftar Pesanan Anda</h2>
+            {% if pesanan %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover small">
+                        <thead class="table-success">
+                            <tr>
+                                <th class="fs-7 fs-sm-8">ID Pesanan</th>
+                                <th class="fs-7 fs-sm-8">Nama Pelanggan</th>
+                                <th class="fs-7 fs-sm-8">Tanggal Transaksi</th>
+                                <th class="fs-7 fs-sm-8">Total</th>
+                                <th class="fs-7 fs-sm-8">Ongkos Kirim</th>
+                                <th class="fs-7 fs-sm-8">Status</th>
+                                <th class="fs-7 fs-sm-8">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trans in pesanan %}
+                            <tr>
+                                <td class="fs-6 fs-sm-7">{{ trans.id }}</td>
+                                <td class="fs-6 fs-sm-7">{{ trans.idPelanggan.nama_pelanggan }}</td>
+                                <td class="fs-6 fs-sm-7">{{ trans.tanggal|date:"d M Y H:i" }}</td>
+                                <td class="fs-6 fs-sm-7">Rp {{ trans.total|intcomma }}</td>
+                                <td class="fs-6 fs-sm-7">Rp {{ trans.ongkir|intcomma }}</td>
+                                <td>
+                                    <span class="badge fs-7 fs-sm-8" style="background-color: #059212; color: #ECFFE6;">
+                                        {{ trans.status_transaksi }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'detail_pesanan' trans.id %}" class="btn btn-custom btn-sm fs-7 fs-sm-8">
+                                         <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle me-2"></i>Anda belum memiliki pesanan.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

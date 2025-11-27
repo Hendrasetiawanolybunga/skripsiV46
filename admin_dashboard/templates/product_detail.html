@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+    {{ produk.nama_produk }} - Detail Produk
+{% endblock %}
+
+{% block content %}
+<section class="container my-5">
+    <div class="row">
+        <div class="col-md-6">
+            {% if produk.foto_produk %}
+                <img src="{{ produk.foto_produk.url }}" class="img-fluid rounded" alt="{{ produk.nama_produk }}">
+            {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height:300px;color:#6c757d;font-weight:600;">No image</div>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <h2 class="mb-3">{{ produk.nama_produk }}</h2>
+            {% if produk.kategori %}
+                <p class="text-muted">{{ produk.kategori.nama_kategori }}</p>
+            {% endif %}
+            <p class="fs-4 fw-bold" style="color: #059212;">Rp {{ produk.harga_produk|intcomma }}</p>
+            <p class="text-muted">Stok: {{ produk.stok_produk|intcomma }}</p>
+            
+            <hr>
+            
+            <h5>Deskripsi</h5>
+            <p>{{ produk.deskripsi_produk }}</p>
+            
+            <hr>
+            
+            <form action="{% url 'tambah_ke_keranjang' produk.id %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="jumlah" class="form-label">Jumlah:</label>
+                    <input type="number" class="form-control" id="jumlah" name="jumlah" value="1" min="1" max="{{ produk.stok_produk }}">
+                </div>
+                <button type="submit" class="btn btn-custom">
+                    <i class="fas fa-cart-plus me-1"></i>Tambah ke Keranjang
+                </button>
+            </form>
+            
+            <form action="{% url 'checkout_langsung' produk.id %}" method="post" class="d-inline ms-2">
+                {% csrf_token %}
+                <input type="hidden" name="jumlah" value="1">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-bolt me-1"></i>Checkout Langsung
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

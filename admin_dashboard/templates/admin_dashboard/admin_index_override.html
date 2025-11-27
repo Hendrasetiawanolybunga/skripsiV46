@@ -1,0 +1,201 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% load humanize %}
+{% block content_title %}{% trans "Dashboard Penjualan & CRM UD. Barokah Jaya Beton" %}{% endblock %}
+
+{% block content %}
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Expand admin content area and reduce typography for dashboard cards/tables */
+    #content-main, #content, .content, .module, .container, .container-fluid {
+        max-width: none !important;
+        width: 100% !important;
+        padding-right: 1rem !important;
+    }
+
+    /* Tweak headings and body text for denser layout */
+    #content-main h3 {
+        font-size: 1.05rem;
+        margin-top: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+
+    #content-main .card-body, #content-main table, #content-main p, #content-main td, #content-main th {
+        font-size: 0.93rem;
+        line-height: 1.3;
+    }
+
+    /* Reduce table cell padding to fit more content */
+    #content-main .table td, #content-main .table th {
+        padding: .4rem .6rem;
+    }
+
+    /* Make chart fill available width */
+    #revenueChart { width: 100% !important; height: 320px !important; }
+
+    /* Ensure Bootstrap grid columns behave inside admin content */
+    @media (min-width: 992px) {
+        .col-lg-6 { width: 50%; float: left; }
+        .col-lg-12 { width: 100%; }
+    }
+
+    /* Small screens adjustments */
+    @media (max-width: 767px) {
+        #content-main { padding-left: .5rem; padding-right: .5rem; }
+        #content-main h3 { font-size: 1rem; }
+    }
+</style>
+{% endblock %}
+<div id="content-main">
+    
+    <h3>📈 Ringkasan Pendapatan 6 Bulan Terakhir</h3>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="revenueChart" style="height:350px"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        
+        <div class="col-lg-6">
+            <h3>💰 5 Transaksi Terbaru</h3>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Pelanggan</th>
+                                <th>Total</th>
+                                <th>Tanggal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trans in latest_transactions %}
+                            <tr>
+                               
+                                <td><a href="{% url 'admin:admin_dashboard_transaksi_change' trans.pk %}">{{ trans.idPelanggan.nama_pelanggan }}</a></td>
+                                <td>Rp {{ trans.total|floatformat:0|intcomma }}</td>
+                                <td>{{ trans.tanggal|date:"d M H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <h3>⚠️ Stok Menipis (Stok < {{ stok_kritis_threshold }})</h3>
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Nama Produk</th>
+                                <th>Stok Saat Ini</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produk in low_stock_products %}
+                            <tr class="{% if produk.stok_produk == 0 %}table-danger{% endif %}">
+                                <td><a href="{% url 'admin:admin_dashboard_produk_change' produk.pk %}">{{ produk.nama_produk }}</a></td>
+                                <td>{{ produk.stok_produk }}</td>
+                              
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2">Semua produk memiliki stok yang cukup.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data diambil dari context view
+            const labels = JSON.parse('{{ chart_labels|escapejs }}');
+            const data = JSON.parse('{{ chart_totals|escapejs }}');
+
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Pendapatan (Rp)',
+                        data: data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += 'Rp ' + context.parsed.y.toLocaleString('id-ID');
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Pendapatan'
+                            },
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return 'Rp ' + value.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    </div>
+    
+        {% if debug_admin_user_info %}
+            <div class="container mt-4">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">Debug: Admin App List & Permissions (superuser only)</div>
+                    <div class="card-body">
+                        <p><strong>is_staff:</strong> {{ debug_admin_user_info.is_staff }} &nbsp; <strong>is_superuser:</strong> {{ debug_admin_user_info.is_superuser }}</p>
+                        <p><strong>Groups:</strong> {{ debug_admin_user_info.groups|join:", " }}</p>
+                        <p><strong>User perms count:</strong> {{ debug_admin_user_info.user_perms_count }} &nbsp; <strong>App list count:</strong> {{ debug_admin_user_info.app_list_count }}</p>
+                        <pre style="max-height:300px; overflow:auto; background:#f8f9fa; padding:10px;">{{ debug_admin_user_info.app_list|pprint }}</pre>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+{% endblock %}

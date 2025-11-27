@@ -1,0 +1,671 @@
+{% load static %}
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beranda | UD. Barokah Jaya Beton</title>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Dynamic Navbar CSS -->
+    <link rel="stylesheet" href="{% static 'css/dynamic-navbar.css' %}">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #ECFFE6;
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(30, 80, 40, 0.6), rgba(30, 80, 40, 0.6)), url('{% static "images/hero-image.jpeg" %}') no-repeat center center;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none;
+        }
+        
+        .hero-content {
+            padding-top: 56px; /* Height of the navbar */
+        }
+        
+        .hero-title {
+            color: #FFFFFF;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .hero-description {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            color: #F0F8F0;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-hero {
+            border-radius: 30px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background-color: #059212;
+            border-color: #059212;
+            color: #ECFFE6;
+        }
+        
+        .btn-hero:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            background-color: #000000;
+            border-color: #000000;
+            color: #ECFFE6;
+        }
+        
+        .product-card {
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: none;
+            position: relative;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-card .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-card .card-text {
+            flex: 1;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .product-card img {
+            height: 200px;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+        
+        .product-card:hover img {
+            opacity: 0.8;
+        }
+        
+        .overlay-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(5, 146, 18, 0.8);
+            color: #ECFFE6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        
+        .product-card:hover .overlay-text {
+            opacity: 1;
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            color: #059212; /* Consistent green color for all section titles */
+            transition: all 0.3s ease;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: #059212;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom {
+            background-color: #059212;
+            border-color: #059212;
+            color: #ECFFE6;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-custom:hover {
+            background-color: #000000;
+            border-color: #000000;
+            color: #ECFFE6;
+            transform: translateY(-2px);
+        }
+        
+        .gallery-img {
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px 15px 0 0;
+            transition: all 0.3s ease;
+        }
+        
+        .about-section, .faq-section {
+            padding: 80px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .about-section {
+            background-color: #f8f9fa;
+        }
+        
+        .faq-section {
+            background-color: #ffffff;
+        }
+        
+        .faq-item {
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-question {
+            font-weight: 600;
+            color: #059212;
+            cursor: pointer;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-question:hover {
+            background-color: #059212;
+            color: #ECFFE6;
+        }
+        
+        .faq-answer {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 0 0 10px 10px;
+            display: none;
+            transition: all 0.3s ease;
+        }
+        
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+        
+        /* Feature Call-out Section */
+        #feature-callout {
+            background-color: #f8f9fa;
+        }
+        
+        #feature-callout .section-title {
+            color: #059212;
+        }
+        
+        #feature-callout .section-title:after {
+            background: #059212;
+        }
+        
+        #feature-callout .btn-success {
+            background-color: #059212;
+            border-color: #059212;
+            border-radius: 30px;
+            font-weight: 500;
+            padding: 8px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        #feature-callout .btn-success:hover {
+            background-color: #047a0f;
+            border-color: #047a0f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        #feature-callout .d-flex span {
+            font-weight: 500;
+        }
+        
+        /* Discount Card Styles */
+        .discount-card {
+            background: linear-gradient(135deg, #059212 0%, #047a0f 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            height: 100%;
+            box-shadow: 0 10px 20px rgba(5, 146, 18, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .discount-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(5, 146, 18, 0.4);
+        }
+        
+        .discount-card .card-title {
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .discount-card .card-text {
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+        }
+        
+        .feature-icon {
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .feature-icon:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+        
+        .btn-light {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-light:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .hero-section {
+                background: linear-gradient(rgba(30, 80, 40, 0.7), rgba(30, 80, 40, 0.7)), url('{% static "images/hero-image.jpeg" %}') no-repeat center center;
+                background-size: cover;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-description {
+                font-size: 1rem;
+            }
+            
+            .gallery-img {
+                height: 200px;
+            }
+            
+            .product-card .card-title {
+                font-size: 1.2rem;
+            }
+            
+            .product-card .card-text {
+                font-size: 0.9rem;
+            }
+            
+            .about-section, .faq-section {
+                padding: 40px 0;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .btn-hero {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero-section {
+                padding: 40px 0;
+            }
+            
+            .hero-title {
+                font-size: 1.5rem;
+            }
+            
+            .hero-description {
+                font-size: 0.9rem;
+            }
+            
+            .gallery-img {
+                height: 150px;
+            }
+            
+            .product-card .card-title {
+                font-size: 1rem;
+            }
+            
+            .product-card .card-text {
+                font-size: 0.8rem;
+            }
+            
+            /* Reduced margins for mobile */
+            .my-5 {
+                margin-top: 1rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .py-5 {
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+            
+            .section-title {
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+            }
+            
+            /* Responsive font sizes for paragraphs */
+            p {
+                font-size: 0.875rem;
+            }
+            
+            .lead {
+                font-size: 1rem;
+            }
+        }
+        
+        /* Base font size adjustment for extra small screens */
+        @media (max-width: 576px) {
+            html {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar_public.html' %}
+
+    <section class="hero-section text-center">
+        <div class="container hero-content">
+            <div class="row align-items-center">
+                <div class="col-lg-12 hero-text">
+                    <!-- Responsive font sizing for main title -->
+                    <h1 class="display-4 fw-bold mb-4 hero-title fs-2 fs-sm-1">Selamat Datang di UD. Barokah Jaya Beton</h1>
+                    <p class="lead mb-4 hero-description fs-6 fs-sm-7">Temukan produk berkualitas tinggi dengan harga terjangkau. Belanja mudah, aman, dan terpercaya hanya di UD. Barokah Jaya Beton.</p>
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                        <a href="{% url 'login_pelanggan' %}" class="btn btn-hero px-4 me-md-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login Pelanggan
+                        </a>
+                        <a href="{% url 'register_pelanggan' %}" class="btn btn-hero px-4">
+                            <i class="fas fa-user-plus me-2"></i>Daftar Sekarang
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Call-out Section -->
+  <section id="feature-callout" class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5 section-title fs-3 fs-sm-2" style="color: #059212;">Penawaran Eksklusif untuk Pelanggan Terbaik</h2>
+        <div class="row align-items-center">
+            
+            <div class="col-lg-12 mb-4 mb-lg-0">
+                <div class="card discount-card shadow-lg h-100 border-0" style="background-color: #059212;">
+                    <div class="card-body text-white text-center p-5 p-sm-3">
+                        <div class="mb-4">
+                           
+                            <i class="fas fa-birthday-cake fa-3x me-3 feature-icon" style="color: #FFC107;"></i>
+        
+                        </div>
+            
+                        
+                        <p class="card-text lead fw-bold fs-5 fs-sm-6">
+                            Sebagai apresiasi tertinggi, dapatkan Potongan Harga Eksklusif sebesar 10% yang berlaku hanya untuk pelanggan setia kami yang telah mencapai total belanja kumulatif di atas Rp5.000.000, tepat di hari perayaan Ulang Tahun Anda.
+                        </p>
+                        
+                        <p class="mt-3 fst-italic fs-6 fs-sm-7">Syarat ganda ini memastikan penawaran terbaik hanya diterima oleh pelanggan paling setia.</p>
+                        
+                    
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+    <section id="gallery" class="py-5 bg-white">
+        <div class="container">
+            <h2 class="text-center mb-5 section-title fs-3 fs-sm-2">Galeri Produk Kami</h2>
+            <div class="row g-4">
+                {% for p in produk %}
+                <div class="col-md-4">
+                    <div class="card product-card h-100 shadow-sm border-0" data-bs-toggle="modal" data-bs-target="#imageModal" {% if p.foto_produk %}data-image="{{ p.foto_produk.url }}"{% else %}data-image=""{% endif %} data-teks="{{ p.deskripsi_produk }}">
+                        {% if p.foto_produk %}
+                            <img src="{{ p.foto_produk.url }}" class="card-img-top gallery-img" alt="{{ p.nama_produk }}">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center" style="height:180px;color:#6c757d;font-weight:600;">No image</div>
+                        {% endif %}
+                        <div class="overlay-text">Lihat Produk</div>
+                        <div class="card-body text-center">
+                            <h5 class="card-title fs-5 fs-sm-6">{{ p.nama_produk }}</h5>
+                            <p class="card-text text-muted fs-6 fs-sm-7">{{ p.deskripsi_produk|truncatewords:15 }}</p>
+                            <p class="card-text fw-bold text-success fs-6 fs-sm-7">Rp {{ p.harga_produk|intcomma }} / unit</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2 class="text-center mb-5 section-title fs-3 fs-sm-2">Tentang Kami</h2>
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <img src="{% static 'images/hero-image.jpeg' %}" class="img-fluid rounded shadow about-image" alt="Tentang UD. Barokah Jaya Beton" data-bs-toggle="modal" data-bs-target="#imageModal" data-image="{% static 'images/hero-image.jpeg' %}" style="cursor: pointer;">
+                    <div class="overlay-text">Lihat Gambar</div>
+                </div>
+                <div class="col-lg-6">
+                    <h3 class="mb-4 fs-4 fs-sm-3" style="color: #059212;">UD. Barokah Jaya Beton</h3>
+                    <p class="mb-4 fs-6 fs-sm-7">UD. Barokah Jaya Beton adalah perusahaan yang bergerak di bidang produksi beton precast dengan lebih dari 10 tahun pengalaman di industri konstruksi Indonesia.</p>
+                    <p class="mb-4 fs-6 fs-sm-7">Kami berkomitmen untuk menyediakan produk beton precast berkualitas tinggi dengan harga yang kompetitif, serta pelayanan terbaik untuk memenuhi kebutuhan konstruksi pelanggan kami.</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="fs-6 fs-sm-7">Kualitas Terjamin</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="fs-6 fs-sm-7">Harga Kompetitif</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="fs-6 fs-sm-7">Pengiriman Tepat Waktu</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <span class="fs-6 fs-sm-7">Pelayanan Profesional</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq" class="faq-section">
+        <div class="container">
+            <h2 class="text-center mb-5 section-title fs-3 fs-sm-2">Frequently Asked Questions</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="faq-item">
+                        <div class="faq-question fs-6 fs-sm-7">
+                            <i class="fas fa-question-circle me-2"></i>Apa itu beton precast?
+                        </div>
+                        <div class="faq-answer fs-6 fs-sm-7">
+                            <p>Beton precast adalah beton yang dicetak dan diproduksi di pabrik dengan kualitas terkontrol, kemudian dikirim ke lokasi proyek untuk pemasangan.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question fs-6 fs-sm-7">
+                            <i class="fas fa-question-circle me-2"></i>Bagaimana cara memesan produk?
+                        </div>
+                        <div class="faq-answer fs-6 fs-sm-7">
+                            <p>Anda dapat memesan produk melalui website kami dengan login terlebih dahulu, memilih produk yang diinginkan, memasukkan ke keranjang, dan melakukan checkout.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question fs-6 fs-sm-7">
+                            <i class="fas fa-question-circle me-2"></i>Berapa lama waktu pengiriman?
+                        </div>
+                        <div class="faq-answer fs-6 fs-sm-7">
+                            <p>Waktu pengiriman tergantung pada lokasi dan ketersediaan produk. Untuk area Jabodetabek, pengiriman biasanya memakan waktu 1-3 hari kerja.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question fs-6 fs-sm-7">
+                            <i class="fas fa-question-circle me-2"></i>Apakah tersedia layanan konsultasi teknis?
+                        </div>
+                        <div class="faq-answer fs-6 fs-sm-7">
+                            <p>Ya, kami menyediakan layanan konsultasi teknis gratis untuk membantu Anda dalam memilih produk yang sesuai dengan kebutuhan proyek Anda.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% include 'footer.html' %}
+
+    <!-- Image Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fs-5 fs-sm-6" id="imageModalLabel">Detail Gambar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" class="img-fluid" alt="Detail Gambar">
+                    <p class="card-text text-muted fs-6 fs-sm-7">{{ p.deskripsi_produk }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navbar scroll effect
+            const navbar = document.getElementById('mainNavbar');
+            
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 100) {
+                    navbar.classList.remove('navbar-hero');
+                    navbar.classList.add('navbar-scrolled');
+                } else {
+                    navbar.classList.remove('navbar-scrolled');
+                    navbar.classList.add('navbar-hero');
+                }
+            });
+            
+            // Adjust scroll position for fixed navbar
+            const links = document.querySelectorAll('a[href^="#"]');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const targetId = this.getAttribute('href');
+                    if (targetId !== '#' && document.querySelector(targetId)) {
+                        e.preventDefault();
+                        const targetElement = document.querySelector(targetId);
+                        const offsetTop = targetElement.offsetTop - 56; // 56px is navbar height
+                        window.scrollTo({
+                            top: offsetTop,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            const imageModal = document.getElementById('imageModal');
+            imageModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const imageUrl = button.getAttribute('data-image');
+                const modalImage = imageModal.querySelector('#modalImage');
+                modalImage.src = imageUrl;
+            });
+
+            // FAQ toggle functionality
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', function() {
+                    const faqItem = this.parentElement;
+                    faqItem.classList.toggle('active');
+                });
+            });
+
+            // Add hover effect to about image
+            const aboutImage = document.querySelector('.about-image');
+            if (aboutImage) {
+                const overlay = document.createElement('div');
+                overlay.className = 'overlay-text';
+                overlay.textContent = 'Lihat Gambar';
+                overlay.style.position = 'absolute';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.right = '0';
+                overlay.style.bottom = '0';
+                overlay.style.background = 'rgba(5, 146, 18, 0.8)';
+                overlay.style.color = '#ECFFE6';
+                overlay.style.display = 'flex';
+                overlay.style.alignItems = 'center';
+                overlay.style.justifyContent = 'center';
+                overlay.style.opacity = '0';
+                overlay.style.transition = 'opacity 0.3s ease';
+                overlay.style.fontWeight = '600';
+                overlay.style.fontSize = '1.2rem';
+                overlay.style.borderRadius = '0.375rem';
+                
+                // Insert overlay before the image
+                aboutImage.parentNode.style.position = 'relative';
+                aboutImage.parentNode.insertBefore(overlay, aboutImage.nextSibling);
+                
+                // Add hover effects
+                aboutImage.addEventListener('mouseenter', function() {
+                    overlay.style.opacity = '1';
+                });
+                
+                aboutImage.addEventListener('mouseleave', function() {
+                    overlay.style.opacity = '0';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
