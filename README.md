@@ -33,7 +33,7 @@ Setiap terminal memiliki peran penting dalam arsitektur aplikasi:
 
 | Layanan | Perintah | Status |
 | :--- | :--- | :--- |
-| **Worker** | `celery -A ProyekBarokah worker --loglevel=info` | Siap memproses tugas |
+| **Worker** | `celery -A ProyekBarokah worker --loglevel=info -P solo` | Siap memproses tugas |
 
 ### 3. Terminal 3: ⏱️ Celery Beat (Penjadwal Tugas)
 
@@ -41,7 +41,7 @@ Setiap terminal memiliki peran penting dalam arsitektur aplikasi:
 
 | Layanan | Perintah | Status |
 | :--- | :--- | :--- |
-| **Beat** | `celery -A ProyekBarokah beat -l info --scheduler django_celery_beat.schedulers.DatabaseScheduler` | Memicu Diskon Otomatis (Ultah/Loyalitas) |
+| **Beat** | `celery -A ProyekBarokah beat -l info` | Memicu Diskon Otomatis (Ultah/Loyalitas) |
 
 ### 4. Terminal 4: 💻 Django Runserver (HTTP Development)
 

@@ -655,7 +655,7 @@ class TransaksiAdmin(BaseModelAdmin):
 # Daftarkan model DiskonPelanggan
 @admin.register(DiskonPelanggan)
 class DiskonPelangganAdmin(BaseModelAdmin):
-    list_display = ['idPelanggan', 'idProduk', 'persen_diskon', 'status', 'get_actions_links']
+    list_display = ['idPelanggan', 'persen_diskon', 'status', 'get_actions_links']
     search_fields = ['idPelanggan__nama_pelanggan', 'idProduk__nama_produk']
     list_filter = ['status']
     list_per_page = 6

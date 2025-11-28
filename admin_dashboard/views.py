@@ -1268,6 +1268,70 @@ def proses_pembayaran(request):
         transaksi.waktu_checkout = timezone.now()
         # Tentukan batas waktu pembayaran 24 jam ke depan
         transaksi.batas_waktu_bayar = transaksi.waktu_checkout + timedelta(hours=24)
+
+    # --- Prepare discount/context variables (same logic as POST path) ---
+    # Ensure variables used later in template are always defined to avoid UnboundLocalError
+    try:
+        # P1: Get top purchased products for this customer
+        try:
+            top_products = pelanggan.get_top_purchased_products(limit=3)
+            top_products_ids = [p.id for p in top_products]
+        except Exception:
+            top_products_ids = []
+
+        # Check if customer qualifies for birthday discount
+        from datetime import date
+        today = date.today()
+        is_birthday = (
+            pelanggan.tanggal_lahir and
+            pelanggan.tanggal_lahir.month == today.month and
+            pelanggan.tanggal_lahir.day == today.day
+        )
+
+        # Kondisi Loyalitas: Total transaksi tertentu
+        from django.db.models import Sum
+        total_spending = Transaksi.objects.filter(
+            idPelanggan=pelanggan,
+            status_transaksi__in=['DIBAYAR', 'DIKIRIM', 'SELESAI']
+        ).aggregate(total_belanja=Sum('total'))['total_belanja'] or 0
+
+        is_loyal = total_spending >= 5000000
+
+        # Calculate total cart value before discounts for P2-B check
+        total_cart_value = Decimal('0')
+        for produk_id_str, jumlah in keranjang_belanja.items():
+            try:
+                produk_id_tmp = int(produk_id_str)
+                produk_tmp = get_object_or_404(Produk, pk=produk_id_tmp)
+                harga_produk_decimal = Decimal(str(produk_tmp.harga_produk))
+                jumlah_decimal = Decimal(str(jumlah))
+                total_cart_value += harga_produk_decimal * jumlah_decimal
+            except Exception:
+                pass
+
+        qualifies_for_p2a = is_birthday and is_loyal
+
+        # Check for new discount scopes
+        all_products_discount = DiskonPelanggan.objects.filter(
+            idPelanggan_id=pelanggan_id,
+            scope_diskon='ALL_PRODUCTS',
+            status='aktif',
+            berlaku_sampai__gte=timezone.now()
+        ).first()
+
+        cart_threshold_discount = DiskonPelanggan.objects.filter(
+            idPelanggan_id=pelanggan_id,
+            scope_diskon='CART_THRESHOLD',
+            status='aktif',
+            berlaku_sampai__gte=timezone.now()
+        ).first()
+    except Exception:
+        # Defensive defaults in case any lookup fails
+        top_products_ids = []
+        total_cart_value = Decimal('0')
+        qualifies_for_p2a = False
+        all_products_discount = None
+        cart_threshold_discount = None
     
     for produk_id_str, jumlah in keranjang_belanja.items():
         produk_id = int(produk_id_str)
