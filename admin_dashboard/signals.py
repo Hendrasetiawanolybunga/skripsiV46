@@ -9,6 +9,9 @@ def transaksi_status_change_handler(sender, instance, created, **kwargs):
     """
     Signal handler untuk mengirim notifikasi ketika status transaksi berubah.
     """
+    # Debug logging untuk verifikasi signal tereksekusi
+    print(f"--- [DEBUG Sinyal] Post_Save Transaksi #{instance.id} dipicu. Created: {created}. Status: {instance.status_transaksi} ---")
+    
     # Jika ini adalah transaksi baru, tidak perlu mengirim notifikasi perubahan status
     if created:
         return

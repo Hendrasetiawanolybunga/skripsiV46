@@ -183,19 +183,5 @@
         });
     </script>
     </div>
-    
-        {% if debug_admin_user_info %}
-            <div class="container mt-4">
-                <div class="card border-warning">
-                    <div class="card-header bg-warning text-dark">Debug: Admin App List & Permissions (superuser only)</div>
-                    <div class="card-body">
-                        <p><strong>is_staff:</strong> {{ debug_admin_user_info.is_staff }} &nbsp; <strong>is_superuser:</strong> {{ debug_admin_user_info.is_superuser }}</p>
-                        <p><strong>Groups:</strong> {{ debug_admin_user_info.groups|join:", " }}</p>
-                        <p><strong>User perms count:</strong> {{ debug_admin_user_info.user_perms_count }} &nbsp; <strong>App list count:</strong> {{ debug_admin_user_info.app_list_count }}</p>
-                        <pre style="max-height:300px; overflow:auto; background:#f8f9fa; padding:10px;">{{ debug_admin_user_info.app_list|pprint }}</pre>
-                    </div>
-                </div>
-            </div>
-        {% endif %}
 
 {% endblock %}

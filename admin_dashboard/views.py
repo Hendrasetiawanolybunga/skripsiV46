@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib import messages
 import logging
 from django.utils import timezone
@@ -48,6 +49,15 @@ PAID_STATUSES = ['DIBAYAR', 'DIKIRIM', 'SELESAI']
 
 # Gabungkan logika Anda dengan data yang baru
 def custom_admin_dashboard(request):
+    # Redirect non-staff / anonymous users to the admin login page
+    try:
+        if not request.user.is_authenticated or not getattr(request.user, 'is_staff', False):
+            # preserve next so admin login returns here after successful auth
+            return redirect(f"{reverse('admin:login')}?next={request.path}")
+    except Exception:
+        # If anything unexpected happens, fall back to redirect to admin login
+        return redirect('admin:login')
+
     # 1. LOGIKA GRAFIK PENDAPATAN BULANAN (Disalin dari dashboard_analitik)
     today = timezone.now()
     monthly_revenue = []
@@ -110,27 +120,6 @@ def custom_admin_dashboard(request):
 
     # Some templates expect 'app_list' or 'available_apps'
     context.update({'app_list': app_list, 'available_apps': app_list})
-
-    # Add lightweight debug info for superusers to help diagnose missing sidebar items
-    try:
-        user = request.user
-        debug_info = None
-        if getattr(user, 'is_superuser', False):
-            # Collect small summary (avoid dumping huge permission lists)
-            perms = [p.codename for p in user.user_permissions.all()[:50]]
-            group_names = [g.name for g in user.groups.all()]
-            debug_info = {
-                'is_staff': getattr(user, 'is_staff', False),
-                'is_superuser': getattr(user, 'is_superuser', False),
-                'groups': group_names,
-                'user_perms_count': user.user_permissions.count(),
-                'sample_perms': perms,
-                'app_list_count': len(app_list),
-                'app_list': app_list,
-            }
-        context['debug_admin_user_info'] = debug_info
-    except Exception:
-        context['debug_admin_user_info'] = None
 
     # Template yang akan kita buat
     return render(request, 'admin_dashboard/admin_index_override.html', context)
@@ -364,12 +353,10 @@ def produk_list(request):
         
         # If no manual discount, check for new discount scopes
         if not diskon_produk:
-            # Check for ALL_PRODUCTS discount
+            # Check for ALL_PRODUCTS discount only (P2-A Loyalitas Permanen)
+            # NOTE: CART_THRESHOLD (P2-B) is NOT applied at product level—it is only for cart/checkout
             if all_products_discount:
                 diskon_produk = all_products_discount
-            # Check for CART_THRESHOLD discount (only show if cart meets threshold)
-            elif cart_threshold_discount and total_cart_value >= (cart_threshold_discount.minimum_cart_total or Decimal('0')):
-                diskon_produk = cart_threshold_discount
         
         # P2-A: Only show birthday discount label for top 3 favorite products (Loyal + Birthday)
         if not diskon_produk and qualifies_for_p2a and p.id in top_products_ids:
@@ -1152,12 +1139,10 @@ def proses_pembayaran(request):
                         
                         # If no manual discount, check for new discount scopes
                         if not diskon_produk:
-                            # Check for ALL_PRODUCTS discount
+                            # Check for ALL_PRODUCTS discount only (P2-A Loyalitas Permanen)
+                            # NOTE: CART_THRESHOLD (P2-B) is NOT applied per-item — it's applied to total cart only
                             if all_products_discount:
                                 diskon_produk = all_products_discount
-                            # Check for CART_THRESHOLD discount (only apply if cart meets threshold)
-                            elif cart_threshold_discount and total_cart_value >= (cart_threshold_discount.minimum_cart_total or Decimal('0')):
-                                diskon_produk = cart_threshold_discount
                         
                         # If no manual discount found, check for birthday discounts (Priority 2)
                         if not diskon_produk:
@@ -1168,12 +1153,7 @@ def proses_pembayaran(request):
                                 persen_diskon_decimal = Decimal('10')
                                 harga_satuan = harga_satuan_decimal - (harga_satuan_decimal * persen_diskon_decimal / 100)
                             
-                            # P2-B: Loyalitas Instan - Apply 10% discount to all items in cart
-                            elif is_p2b_eligible:
-                                # Apply 10% birthday discount
-                                harga_satuan_decimal = Decimal(str(harga_satuan))
-                                persen_diskon_decimal = Decimal('10')
-                                harga_satuan = harga_satuan_decimal - (harga_satuan_decimal * persen_diskon_decimal / 100)
+                            # P2-B: Loyalitas Instan — NOT applied per-item; will be applied to cart total after loop
                         
                         # Apply manual discount if found (Priority 1)
                         elif diskon_produk:
@@ -1198,6 +1178,12 @@ def proses_pembayaran(request):
                         )
                         detail_list.append(detail)
                         total_belanja += sub_total
+
+                    # P2-B: Apply 10% discount to total cart (NOT per-item)
+                    # If customer qualifies for P2-B and CART_THRESHOLD is active, apply discount to total
+                    if is_p2b_eligible and cart_threshold_discount:
+                        potongan_p2b = total_belanja * Decimal('10') / Decimal('100')
+                        total_belanja -= potongan_p2b
 
                     transaksi.total = total_belanja
                     transaksi.save()
@@ -1433,6 +1419,12 @@ def akun(request):
     # Get notification count
     notifikasi_count = get_notification_count(pelanggan.id)
     
+    # Calculate total purchase history
+    total_belanja = Transaksi.objects.filter(
+        idPelanggan=pelanggan,
+        status_transaksi__in=['DIBAYAR', 'DIKIRIM', 'SELESAI']
+    ).aggregate(total=Sum('total'))['total'] or Decimal('0')
+    
     if request.method == 'POST':
         form = PelangganEditForm(request.POST, instance=pelanggan)
         if form.is_valid():
@@ -1454,7 +1446,8 @@ def akun(request):
     context = {
         'pelanggan': pelanggan,
         'form': form,
-        'notifikasi_count': notifikasi_count
+        'notifikasi_count': notifikasi_count,
+        'total_belanja': total_belanja
     }
     return render(request, 'akun.html', context)
 
