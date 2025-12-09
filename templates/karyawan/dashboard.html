@@ -3,49 +3,51 @@
 {% block title %}Dashboard Karyawan{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <h4 class="mb-0">Pengiriman Aktif</h4>
-    <small class="text-muted">Daftar transaksi dengan status <strong>DIKIRIM</strong></small>
-  </div>
-  {% if karyawan %}
-  <div class="text-end">
-    <div class="fw-semibold">{{ karyawan.nama }}</div>
-    <small class="text-muted">{{ karyawan.email }}</small>
-  </div>
-  {% endif %}
+  <div>
+    <h4 class="mb-0">Pengiriman Aktif</h4>
+    <small class="text-muted">Daftar transaksi dengan status <strong>DIKIRIM</strong></small>
+  </div>
+  {% if karyawan %}
+  <div class="text-end">
+    <div class="fw-semibold">{{ karyawan.nama }}</div>
+    <small class="text-muted">{{ karyawan.email }}</small>
+  </div>
+  {% endif %}
 </div>
 
 <div class="table-responsive">
-  <table class="table table-borderless align-middle">
-    <thead>
-      <tr>
-        <th class="text-muted">No</th>
-        <th>Pelanggan</th>
-        <th>Alamat</th>
-        <th class="text-end">Total</th>
-        <th class="text-center">Tanggal</th>
-        <th class="text-center">Aksi</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for t in transaksi_list %}
-      <tr class="shadow-sm mb-2 rounded bg-white">
-        <td class="text-muted">{{ forloop.counter }}</td>
-        <td>{{ t.idPelanggan.nama_pelanggan }}</td>
-        <td style="max-width: 280px;">{{ t.alamat_pengiriman|truncatechars:60 }}</td>
-        <td class="text-end text-success">Rp {{ t.total|default:0|intcomma }}</td>
-        <td class="text-center text-muted">{{ t.tanggal|date:'d M Y H:i' }}</td>
-        <td class="text-center">
-          <a href="{% url 'verifikasi_pengiriman' t.pk %}" class="btn btn-sm btn-outline-primary">Verifikasi</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" class="text-center text-muted">Tidak ada pengiriman saat ini.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <table class="table table-borderless align-middle">
+    <thead>
+      <tr>
+        <th class="text-muted">No</th>
+        <th>Pelanggan</th>
+        <th>Alamat</th>
+        <th class="text-center">Ongkos Kirim</th> {# BARIS BARU: Kolom Ongkir #}
+        <th class="text-end">Total</th>
+        <th class="text-center">Tanggal</th>
+        <th class="text-center">Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transaksi_list %}
+      <tr class="shadow-sm mb-2 rounded bg-white">
+        <td class="text-muted">{{ forloop.counter }}</td>
+        <td>{{ t.idPelanggan.nama_pelanggan }}</td>
+        <td style="max-width: 280px;">{{ t.alamat_pengiriman|truncatechars:60 }}</td>
+        <td class="text-center text-warning fw-bold">Rp {{ t.ongkir|default:0|intcomma }}</td> {# BARIS BARU: Nilai Ongkir (Highlighted) #}
+        <td class="text-end text-success">Rp {{ t.total|default:0|intcomma }}</td>
+        <td class="text-center text-muted">{{ t.tanggal|date:'d M Y H:i' }}</td>
+        <td class="text-center">
+          <a href="{% url 'verifikasi_pengiriman' t.pk %}" class="btn btn-sm btn-outline-primary">Verifikasi</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="text-center text-muted">Tidak ada pengiriman saat ini.</td> {# PERUBAHAN: colspan dari 6 ke 7 #}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 {% endblock %}

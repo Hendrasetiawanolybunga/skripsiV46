@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Sum
 from datetime import date
+from decimal import Decimal
 # Model Admin (menggantikan User bawaan Django untuk admin)
 class Admin(AbstractUser):
     nama_lengkap = models.CharField(max_length=255, verbose_name="Nama Lengkap")
@@ -124,7 +125,7 @@ STATUS_TRANSAKSI_CHOICES = [
 # Model Transaksi
 class Transaksi(models.Model):
     id = models.AutoField(primary_key=True)
-    tanggal = models.DateTimeField(default=date.today)
+    tanggal = models.DateTimeField(default=timezone.now)
     total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Total", blank=True, null=True)
     ongkir = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Ongkos Kirim", default=0)
     status_transaksi = models.CharField(
@@ -135,7 +136,7 @@ class Transaksi(models.Model):
     )
     bukti_bayar = models.FileField(upload_to='bukti_pembayaran/', verbose_name="Bukti Pembayaran", null=True, blank=True)
     idPelanggan = models.ForeignKey(Pelanggan, on_delete=models.CASCADE, verbose_name="Pelanggan")
-    alamat_pengiriman = models.TextField(verbose_name="Alamat Pengiriman", blank=True, null=True)
+    alamat_pengiriman = models.TextField(verbose_name="Alamat Pengiriman")
     # New fields for customer feedback
     feedback = models.TextField(verbose_name="Feedback", null=True, blank=True)
     fotofeedback = models.ImageField(upload_to='feedback_images/', verbose_name="Foto Feedback", null=True, blank=True)
@@ -149,6 +150,42 @@ class Transaksi(models.Model):
         null=True, 
         blank=True
     )
+
+    # METODE BARU: Menghitung ulang total transaksi
+    def hitung_total_transaksi(self, save=True):
+        """Menghitung total dari semua sub_total DetailTransaksi + ongkir."""
+        
+        # Ambil total sub_total dari semua detail transaksi yang terkait
+        # Note: 'detailtransaksi_set' adalah nama default manager untuk reverse FK
+        detail_totals = self.detailtransaksi_set.aggregate(sum_sub_total=Sum('sub_total'))
+        
+        # Dapatkan nilai, default ke 0 jika tidak ada detail
+        sum_sub_total = detail_totals.get('sum_sub_total') or Decimal('0.00')
+        
+        # Hitung total akhir (Sub Total + Ongkir)
+        total_baru = sum_sub_total + self.ongkir
+        
+        # Perbarui field total
+        self.total = total_baru
+            
+        if save:
+            # Gunakan update_fields=['total'] untuk menyimpan HANYA field total 
+            # dan menghindari rekursi tak terbatas (save loop) jika dipanggil dari DetailTransaksi.save
+            self.save(update_fields=['total'])
+
+    def save(self, *args, **kwargs):
+        # Memastikan save default dipanggil terlebih dahulu untuk mendapatkan ID (pk) jika objek baru
+        super().save(*args, **kwargs)
+        
+        # Hanya hitung ulang total jika:
+        # 1. Field 'total' tidak termasuk yang diperbarui secara eksplisit (misalnya, hanya ongkir yang berubah)
+        # 2. Objek sudah memiliki ID (sudah tersimpan di database)
+        if self.pk and ('update_fields' not in kwargs or 'ongkir' in kwargs.get('update_fields', [])):
+             # Panggil hitung_total_transaksi. save=False karena super().save sudah dipanggil
+             self.hitung_total_transaksi(save=False) 
+             # Lakukan save lagi, hanya untuk memastikan nilai total disimpan jika ada perubahan di Transaksi itu sendiri (misal: ongkir)
+             if 'update_fields' not in kwargs and self.total != kwargs.get('total', self.total): # Cek kasar apakah total berubah
+                 super().save(update_fields=['total'], *args, **kwargs)
 
     class Meta:
         verbose_name_plural = "Transaksi"
@@ -165,6 +202,27 @@ class DetailTransaksi(models.Model):
     idProduk = models.ForeignKey(Produk, on_delete=models.CASCADE, verbose_name="Produk")
     jumlah_produk = models.IntegerField(verbose_name="Jumlah Produk")
     sub_total = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Sub Total", null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # 1. Menghitung sub_total sebelum DetailTransaksi disimpan
+        if self.idProduk and self.jumlah_produk is not None:
+            # Mengakses harga produk dari relasi ForeignKey
+            try:
+                harga_produk = self.idProduk.harga_produk
+                self.sub_total = harga_produk * self.jumlah_produk
+            except AttributeError:
+                # Handle kasus idProduk belum/tidak valid (walaupun seharusnya tidak terjadi)
+                self.sub_total = Decimal('0.00')
+        else:
+            self.sub_total = Decimal('0.00')
+            
+        # 2. Panggil metode save asli untuk DetailTransaksi
+        super().save(*args, **kwargs)
+        
+        # 3. Memicu Transaksi induk untuk menghitung ulang totalnya
+        # Perlu dipastikan idTransaksi ada sebelum memanggil hitung
+        if self.idTransaksi_id:
+            self.idTransaksi.hitung_total_transaksi()
 
     class Meta:
         verbose_name_plural = "Detail Transaksi"
